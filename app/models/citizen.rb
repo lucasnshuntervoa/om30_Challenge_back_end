@@ -83,8 +83,7 @@ class Citizen < ApplicationRecord
   end
 
   def send_create_notification_by_email
-    self.email = 'lucasalemao.ns@gmail.com'
-    self.name = 'lucas'
+    
     message = {
       email:,
       name:,
@@ -101,8 +100,7 @@ class Citizen < ApplicationRecord
   end
 
   def send_update_notification_by_email
-    self.email = 'lucasalemao.ns@gmail.com'
-    self.name = 'lucas'
+    
     message = {
       email:,
       name:,
@@ -119,7 +117,7 @@ class Citizen < ApplicationRecord
   end
 
   def send_create_notification_by_sms
-    self.telephone = '+55-62-982815379'
+   
     message = {
       email:,
       name:,
@@ -136,7 +134,7 @@ class Citizen < ApplicationRecord
   end
 
   def send_update_notification_by_sms
-    self.telephone = '+55-62-982815379'
+    
     message = {
       email:,
       name:,
