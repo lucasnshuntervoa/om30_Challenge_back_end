@@ -9,8 +9,8 @@ class Citizen < ApplicationRecord
 
   validates :status, presence: true, inclusion: { in: statuses.keys }
   validates :name, :last_name, presence: true,
-                               format: { with: /\A[a-zA-Z\s]+\z/, message: 'somente permite letras e espaços' },
-                               length: { minimum: 2, maximum: 50 }
+                             format: { with: /\A[\p{L}\s]+\z/, message: 'somente permite letras e espaços' },
+                             length: { minimum: 2, maximum: 50 }
   validates :cns, presence: true, uniqueness: { message: 'já está em uso' }
   validates :date_of_birth, presence: true
   validates :status, presence: true

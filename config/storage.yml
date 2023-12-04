@@ -17,8 +17,8 @@ amazon:
   service: S3
   access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
   secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-  region: 'sa-east-1'
-  bucket: 'om30development'
+  region: 'us-east-1' # Altere para a sua região
+  bucket: 'seu-nome-de-bucket' # Nome do seu bucket S3
 # Remember not to checkin your GCS keyfile to a repository
 # google:
 #   service: GCS
