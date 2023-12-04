@@ -1,0 +1,21 @@
+# .rubocop.yml
+
+# Use a versão mais recente do RuboCop
+AllCops:
+  NewCops: enable
+
+# Defina o padrão de identação para 2 espaços
+Layout/IndentationWidth:
+  Enabled: true
+  Width: 2
+
+# Limite o comprimento das linhas de código
+Metrics/LineLength:
+  Enabled: true
+  Max: 80 # ou outro valor que você prefira
+
+# Adicione aqui outras regras de boas práticas que achar necessário
+
+# Detectar chamadas de 'debugger'
+Lint/Debugger:
+  Enabled: true
