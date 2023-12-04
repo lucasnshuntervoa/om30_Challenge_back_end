@@ -6,7 +6,7 @@ require 'sendgrid-ruby'
 include SendGrid
 
 def send_email_on_citizen_create(data)
-  from_email = SendGrid::Email.new(email: 'remetente@teste.com', name: 'Teste')
+  from_email = SendGrid::Email.new(email: ENV['TEST_EMAIL_FROM'], name: 'Teste')
   to_email = SendGrid::Email.new(email: data['email'])
   subject = 'Bem-vindo à Aplicação om30'
 
@@ -35,7 +35,7 @@ def send_email_on_citizen_create(data)
 end
 
 def send_email_on_citizen_update(data)
-  from_email = SendGrid::Email.new(email: 'remetente@teste.com', name: 'Teste')
+  from_email = SendGrid::Email.new(email: ENV['TEST_EMAIL_FROM'], name: 'Teste')
   to_email = SendGrid::Email.new(email: data['email'])
   subject = 'Seus dados foram atualizados!'
 
@@ -66,12 +66,12 @@ end
 def send_sms_on_citizen_create(data)
   account_sid = ENV['TWILIO_ACCOUNT_SID']
   auth_token = ENV['TWILIO_AUTH_TOKEN']
+
   client = Twilio::REST::Client.new(account_sid, auth_token)
 
   message = "Olá #{data['name']}, seu registro foi criado na aplicação om30. Bem-vindo!"
-
   client.messages.create(
-    from: 'twillo-phone',
+    from: ENV['TWILIO_PHONE'],
     to: data['telephone'],
     body: message
   )
@@ -85,7 +85,7 @@ def send_sms_on_citizen_update(data)
   message = "Olá #{data['name']}, seu registro na aplicação om30 foi atualizado."
 
   client.messages.create(
-    from: 'twillophone',
+    from: ENV['TWILIO_PHONE'],
     to: data['telephone'],
     body: message
   )
@@ -94,31 +94,44 @@ end
 def start_kafka_consumer(group_id, topic, email_method)
   loop do
     kafka = Kafka.new(['localhost:9092'])
-    consumer = kafka.consumer(group_id:)
+    consumer = kafka.consumer(group_id: group_id)
     consumer.subscribe(topic)
 
     puts "Consumidor Kafka para #{topic} iniciado..."
 
-    consumer.each_batch do |batch|
-      batch.messages.each do |message|
-        puts "Mensagem recebida do tópico #{topic}: #{message.value}"
-        data = JSON.parse(message.value)
-        puts "Enviando e-mail para: #{data['email']}"
-        send(email_method, data)
-      end
+    begin
+      consumer.each_batch do |batch|
+        if batch.empty?
+          puts "Nenhuma mensagem nova no tópico #{topic}."
+        else
+          batch.messages.each do |message|
+            puts "Mensagem recebida do tópico #{topic}: #{message.value}"
+            data = JSON.parse(message.value)
+            puts "Enviando e-mail para: #{data['email']}"
+            send(email_method, data)
+          end
 
-      consumer.mark_message_as_processed(batch.messages.last)
-      consumer.commit_offsets
+          consumer.mark_message_as_processed(batch.messages.last)
+          consumer.commit_offsets
+        end
+      end
+    rescue Kafka::ConnectionError => e
+      puts "Erro de conexão com o Kafka: #{e.message}. Tentando reconectar em 10 segundos..."
+      sleep 10
+    rescue JSON::ParserError => e
+      puts "Erro ao analisar mensagem JSON: #{e.message}"
+    rescue StandardError => e
+      puts "Erro ao processar a mensagem: #{e.message}"
     end
-  rescue Kafka::ConnectionError => e
-    puts "Erro de conexão com o Kafka: #{e.message}. Tentando reconectar em 10 segundos..."
-    sleep 10
-  rescue StandardError => e
-    puts "Erro ao processar a mensagem: #{e.message}"
   end
 end
 
+
 threads = []
+
+threads << Thread.new do
+  start_kafka_consumer('citizen_sms_sender_on_create', 'sms-citizen-create', :send_sms_on_citizen_create)
+end
 
 threads << Thread.new do
   start_kafka_consumer('citizen_email_sender_on_create', 'email-citizen-create', :send_email_on_citizen_create)
@@ -129,10 +142,8 @@ threads << Thread.new do
 end
 
 threads << Thread.new do
-  start_kafka_consumer('citizen_sms_sender_on_create', 'sms-citizen-create', :send_sms_on_citizen_create)
-end
-threads << Thread.new do
   start_kafka_consumer('citizen_sms_sender_on_update', 'sms-citizen-update', :send_sms_on_citizen_update)
 end
+
 
 threads.each(&:join)

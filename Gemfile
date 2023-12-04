@@ -62,9 +62,11 @@ group :development, :test do
   gem 'faker'
   gem 'rspec-rails', '~> 5.0'
   gem 'rubocop', require: false
+  
 end
 
 group :development do
+  gem 'dotenv-rails'
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end

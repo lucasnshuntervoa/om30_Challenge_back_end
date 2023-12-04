@@ -100,7 +100,7 @@ class Citizen < ApplicationRecord
   end
 
   def send_update_notification_by_email
-    
+   
     message = {
       email:,
       name:,
@@ -117,7 +117,7 @@ class Citizen < ApplicationRecord
   end
 
   def send_create_notification_by_sms
-   
+
     message = {
       email:,
       name:,
@@ -134,7 +134,7 @@ class Citizen < ApplicationRecord
   end
 
   def send_update_notification_by_sms
-    
+  
     message = {
       email:,
       name:,
